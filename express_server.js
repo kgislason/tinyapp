@@ -28,21 +28,26 @@ app.get('/urls/new', (req, res) => {
   res.render("pages/urls_new");
 });
 
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
+app.post("/urls/", (req, res) => {
+  //generate new short URL id
+  const random = generateRandomString(6);
+  // Add it to database:
+  urlDatabase[random] = req.body.longURL;
+  
+  // Redirect to newly created short url
+  res.redirect('/urls/' + random);
+});
+
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
   res.render("pages/urls_show", templateVars);
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.post("/urls", (req, res) => {
-  res.send("Ok"); // respond with 'Ok' (we will replace this)
-  urlDatabase[generateRandomString(6)] = req.body.longURL;
 });
 
 app.listen(PORT, () => {
