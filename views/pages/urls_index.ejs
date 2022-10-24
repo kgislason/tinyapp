@@ -9,21 +9,30 @@
   <%- include('../partials/header'); %>
 </header>
 
-<main>
-  <div class="jumbotron">
-    <h1>URLS Index</h1>
-    <p>lakdshf lkas</p>
-    <h2>Viarables:</h2>
-    <ul><% for ( let item in urls ) { %>    
-      <li>URL: <%= urls[item] %>, shortened: <%= item %></li>
-    <% } %>
-    </ul>
-  </div>
+<main class="py-5">
+  <h1>My URLs</h1>
+  <table class="table table-dark">
+    <thead>
+      <tr>
+        <th scope="col">Short URL ID</th>
+        <th scope="col">Long URL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (let id in urls) { %>
+        <tr>
+          <td><%= id %></td>
+          <td><%= urls[id] %></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
 </main>
 
 <footer>
   <%- include('../partials/footer'); %>
 </footer>
 
+<%- include('../partials/scripts'); %>
 </body>
 </html>
