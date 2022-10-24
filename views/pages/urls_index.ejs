@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/head'); %>
+</head>
+<body class="container">
+
+<header>
+  <%- include('../partials/header'); %>
+</header>
+
+<main>
+  <div class="jumbotron">
+    <h1>URLS Index</h1>
+    <p>lakdshf lkas</p>
+    <h2>Viarables:</h2>
+    <ul><% for ( let item in urls ) { %>    
+      <li>URL: <%= urls[item] %>, shortened: <%= item %></li>
+    <% } %>
+    </ul>
+  </div>
+</main>
+
+<footer>
+  <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+</html>
