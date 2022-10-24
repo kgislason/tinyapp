@@ -21,7 +21,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
@@ -30,10 +30,6 @@ app.get("/urls/:id", (req, res) => {
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {
