@@ -41,11 +41,8 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  console.log({
-    id: generateRandomString(6)
-  });
   res.send("Ok"); // respond with 'Ok' (we will replace this)
+  urlDatabase[generateRandomString(6)] = req.body.longURL;
 });
 
 app.listen(PORT, () => {
