@@ -3,7 +3,7 @@ const generateRandomString = (length) => {
   const char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   const max = char.length - 1;
 
-  for ( let i = 0; i < length; i++ ) {
+  for (let i = 0; i < length; i++) {
     result += char[Math.floor(Math.random() * max)];
   }
 
