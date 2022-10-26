@@ -14,7 +14,8 @@ const urlDatabase = {
 };
 
 
-// Home Page
+////// ROUTES //////
+
 app.get("/", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("pages/urls_index", templateVars);
@@ -30,6 +31,21 @@ app.get("/u.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get("/u/:id", (req, res) => {
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id]
+  };
+  res.redirect(templateVars.longURL);
+});
+
+app.get('*', (req, res) => {
+  res.status(404);
+  res.render("pages/urls_404");
+});
+
+////// POST ///////
+
 app.post("/", (req, res) => {
   //generate new short URL id
   const random = generateRandomString(6);
@@ -39,12 +55,9 @@ app.post("/", (req, res) => {
   res.redirect('/');
 });
 
-app.get("/u/:id", (req, res) => {
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id]
-  };
-  res.redirect(templateVars.longURL);
+app.post("/u/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect('/');
 });
 
 // Edge Cases
@@ -52,9 +65,11 @@ app.get("/u/:id", (req, res) => {
 // What happens to the urlDatabase when the server is restarted?
 //What type of status code do our redirects have? What does this status code mean?
 // Warning
-/* 
+/*
 In order to function correctly, any long URLs submitted through the form must include the protocol (http:// or https://). In a real web app, we might implement some code to help our users by detecting whether http was included in their submission, and add it if it wasn't. Because we want to focus more on the routing, request handling, and templates for this project, we're going to omit this feature. However, it means that, while testing, you may encounter problems if the sample URLs you are submitting do not include the protocol.
 */
+
+////// LISTENER //////
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
