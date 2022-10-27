@@ -22,15 +22,24 @@ app.get("/", (req, res) => {
 });
 
 // Create New hort url form page
-app.get('/u/new', (req, res) => {
+app.get('/urls/new', (req, res) => {
   res.render("pages/urls_new");
 });
 
 // Database
-app.get("/u.json", (req, res) => {
+app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get("/urls/:id", (req, res) => {
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id]
+  };
+  res.render("pages/urls_show", templateVars);
+});
+
+/* Redirect shortened urls to the LongURL */
 app.get("/u/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
@@ -55,7 +64,12 @@ app.post("/", (req, res) => {
   res.redirect('/');
 });
 
-app.post("/u/:id/delete", (req, res) => {
+app.post("/urls/:id/update", (req, res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect('/');
+});
+
+app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/');
 });
