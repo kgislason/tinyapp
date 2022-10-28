@@ -8,23 +8,29 @@
 <%- include('../partials/header'); %>
 
 <main class="py-5">
-  <div class="card text-center">
-    <div class="card-header"></div>
-    <div class="card-body">
-      <h1 class="h5 card-title">TinyURL for: <%= longURL %></h1>
+  <div class="card">
+    <div class="card-header">
+      <h1 class="h4 card-title">TinyURL for: <%= longURL %></h1>
       <p class="card-text">
         Short URL ID: <a target="_blank" href="/u/<%= id %>"><%= id %></a>
       </p>
-
+    </div>
+    <div class="card-body">
+      <h4>Edit</h4>
       <form method="POST" action="/urls/<%= id %>/update">
-        <div class="form-group form-inline justify-content-center">
+        <div class="form-group form-inline justify-content-start">
           <label class="mr-1" for="longURL">Update Long URL:</label>
-          <input class="form-control mr-1" type="text" name="longURL" id="longURL" />
-          <button name="<%= id %>" class="btn btn-primary" type="submit">Save</button>
+          <div class="d-flex"><input class="form-control mr-1" type="text" name="longURL" id="longURL" />
+          <button name="<%= id %>" class="btn btn-primary" type="submit">Save</button></div>
         </div>
       </form>
     </div>
-    <div class="card-footer text-muted"></div>
+    <div class="card-footer text-muted">
+      
+    </div>
+  </div>
+  <div class="mt-4">
+    <a href="/" class="btn btn-outline-primary">Back</a>
   </div>
 </main>
 
