@@ -1,24 +1,37 @@
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
+const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
 const { generateRandomString } = require("./functions");
 const { urlDatabase } = require('./database');
 
 app.set('view engine', 'ejs');
 app.use(morgan('dev'));
+app.use(cookieParser());
 
 ////// Body Parser - needs to come before routes //////
 app.use(express.urlencoded({ extended: true }));
 
 ////// ROUTES //////
 app.get("/", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    urls: urlDatabase
+  };
+  if (req.cookies["username"] !== '') {
+    templateVars.username = req.cookies["username"];
+  }
   res.render("pages/urls_index", templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
-  res.render("pages/urls_new");
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  // if (req.cookies["username"] !== '') {
+  //   templateVars.username = req.cookies["username"];
+  // }
+  res.render("pages/urls_new", templateVars);
 });
 
 app.get("/urls.json", (req, res) => {
@@ -30,12 +43,16 @@ app.get("/urls/:id", (req, res) => {
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
+  if (req.cookies["username"] !== '') {
+    templateVars.username = req.cookies["username"];
+  }
   res.render("pages/urls_show", templateVars);
 });
 
 // Redirect shortened urls to the LongURL
 app.get("/u/:id", (req, res) => {
   const templateVars = {
+    username: req.cookies["username"],
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
@@ -48,11 +65,23 @@ app.get('*', (req, res) => {
 });
 
 ////// POST //////
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect('/');
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie('username', { path: '/' });
+  res.redirect('/');
+});
+
 app.post("/", (req, res) => {
   //generate new short URL id
   const random = generateRandomString(6);
+
   // Add it to database:
   urlDatabase[random] = req.body.longURL;
+
   // res.redirect('/' + random);
   res.redirect('/');
 });
