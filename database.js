@@ -5,4 +5,4 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-module.exports = { urlDatabase}
+module.exports = { urlDatabase};
