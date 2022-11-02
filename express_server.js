@@ -28,14 +28,24 @@ app.get('/urls/new', (req, res) => {
   const templateVars = {
     username: req.cookies["username"]
   };
-  // if (req.cookies["username"] !== '') {
-  //   templateVars.username = req.cookies["username"];
-  // }
+  if (req.cookies["username"] !== '') {
+    templateVars.username = req.cookies["username"];
+  }
   res.render("pages/urls_new", templateVars);
 });
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+});
+
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  if (req.cookies["username"] !== '') {
+    templateVars.username = req.cookies["username"];
+  }
+  res.render("pages/urls_register", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -60,8 +70,11 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get('*', (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"]
+  };
   res.status(404);
-  res.render("pages/urls_404");
+  res.render("pages/urls_404", templateVars);
 });
 
 ////// POST //////
