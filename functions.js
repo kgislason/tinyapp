@@ -1,4 +1,4 @@
-const generateRandomString = (length) => {
+const generateRandomString = (length = 8) => {
   let result = '';
   const char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   const max = char.length - 1;
