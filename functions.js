@@ -1,5 +1,3 @@
-const { users } = require("./database");
-
 const generateRandomString = (length = 8) => {
   let result = '';
   const char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -22,4 +20,26 @@ const emailLookup = (email, users) => {
   return false;
 };
 
-module.exports = { generateRandomString, emailLookup };
+const getUserID = (email, users) => {
+  let objArr = Object.keys(users);
+  for (let item of objArr) {
+    if (email === users[item].email) {
+      return item;
+    }
+  }
+  return false;
+};
+
+const passwordCheck = (email, password, users) => {
+  let objArr = Object.keys(users);
+  for (let item of objArr) {
+    if (email === users[item].email) {
+      if (password === users[item].password) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+module.exports = { generateRandomString, emailLookup, getUserID, passwordCheck };

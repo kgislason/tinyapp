@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include('../partials/_head'); %>
+</head>
+
+<body class="container">
+
+  <%- include('../partials/_header'); %>
+
+    <main class="py-5">
+      <div class="card">
+        <div class="card-header">
+          <h1 class="h4 card-title mb-0">Login</h1>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/login">
+            <div class="form-group">
+              <label class="mr-1" for="email">Email:</label>
+              <input class="form-control mr-1" type="email" name="email" id="email" placeholder="Enter your email" />
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input class="form-control" type="password" id="password" name="password" placeholder="password" />
+            </div>
+            <button class="btn btn-primary" type="submit">Login</button>
+        </div>
+        </form>
+      </div>
+      <div class="card-footer text-muted">
+
+      </div>
+      </div>
+      <div class="mt-4">
+        <a href="/" class="btn btn-outline-primary">Back</a>
+      </div>
+    </main>
+
+    <footer>
+      <%- include('../partials/_footer'); %>
+    </footer>
+
+    <%- include('../partials/_scripts'); %>
+</body>
+
+</html>

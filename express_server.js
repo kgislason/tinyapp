@@ -3,7 +3,7 @@ const morgan = require("morgan");
 const app = express();
 const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
-const { generateRandomString, emailLookup } = require("./functions");
+const { generateRandomString, emailLookup, getUserID, passwordCheck } = require("./functions");
 const { urlDatabase, users } = require('./database');
 
 app.set('view engine', 'ejs');
@@ -22,10 +22,6 @@ app.get("/", (req, res) => {
     user: users[userID]
   };
 
-  if (req.cookies["username"] !== '') {
-    templateVars.username = req.cookies["username"];
-  }
-
   res.render("pages/urls_index", templateVars);
 });
 
@@ -36,9 +32,6 @@ app.get('/urls/new', (req, res) => {
     user: users[userID]
   };
 
-  if (req.cookies["username"] !== '') {
-    templateVars.username = req.cookies["username"];
-  }
   res.render("pages/urls_new", templateVars);
 });
 
@@ -49,10 +42,18 @@ app.get("/register", (req, res) => {
     user: users[userID]
   };
 
-  if (req.cookies["username"] !== '') {
-    templateVars.username = req.cookies["username"];
-  }
   res.render("pages/urls_register", templateVars);
+});
+
+
+app.get("/login", (req, res) => {
+  let userID = req.cookies["user_id"];
+
+  const templateVars = {
+    user: users[userID]
+  };
+
+  res.render("pages/urls_login", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -64,9 +65,6 @@ app.get("/urls/:id", (req, res) => {
     user: users[userID]
   };
 
-  if (req.cookies["username"] !== '') {
-    templateVars.username = req.cookies["username"];
-  }
   res.render("pages/urls_show", templateVars);
 });
 
@@ -75,7 +73,6 @@ app.get("/u/:id", (req, res) => {
   let userID = req.cookies["user_id"];
 
   const templateVars = {
-    username: req.cookies["username"],
     user: users[userID],
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
@@ -88,7 +85,6 @@ app.get('/404', (req, res) => {
   let userID = req.cookies["user_id"];
 
   const templateVars = {
-    username: req.cookies["username"],
     user: users[userID]
   };
 
@@ -99,7 +95,6 @@ app.get('*', (req, res) => {
   let userID = req.cookies["user_id"];
 
   const templateVars = {
-    username: req.cookies["username"],
     user: users[userID]
   };
 
@@ -136,13 +131,23 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
-  res.redirect('/');
+  let userEmail = req.body.email;
+  let userPwd = req.body.password;
+  let emailExists = emailLookup(userEmail, users);
+  let userID = getUserID(userEmail, users);
+  let checkPwd = passwordCheck(userEmail, userPwd, users);
+
+  if (emailExists && checkPwd) {
+    res.cookie('user_id', userID);
+    res.redirect('/');
+  } else {
+    res.status(404);
+    res.redirect('404');
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('username', { path: '/' });
-  res.clearCookie('user_id');
+  res.clearCookie('user_id', { path: '/' });
   res.redirect('/');
 });
 
