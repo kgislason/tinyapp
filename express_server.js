@@ -81,36 +81,6 @@ app.get("/u/:id", (req, res) => {
   res.redirect(templateVars.longURL);
 });
 
-app.get('/404', (req, res) => {
-  let userID = req.cookies["user_id"];
-
-  const templateVars = {
-    user: users[userID]
-  };
-
-  res.render("pages/urls_404", templateVars);
-});
-
-app.get('/403', (req, res) => {
-  let userID = req.cookies["user_id"];
-
-  const templateVars = {
-    user: users[userID]
-  };
-
-  res.render("pages/urls_403", templateVars);
-});
-
-app.get('/400', (req, res) => {
-  let userID = req.cookies["user_id"];
-
-  const templateVars = {
-    user: users[userID]
-  };
-
-  res.render("pages/urls_400", templateVars);
-});
-
 app.get('*', (req, res) => {
   let userID = req.cookies["user_id"];
 
