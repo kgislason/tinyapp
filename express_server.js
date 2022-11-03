@@ -3,7 +3,7 @@ const morgan = require("morgan");
 const app = express();
 const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
-const { generateRandomString } = require("./functions");
+const { generateRandomString, emailLookup } = require("./functions");
 const { urlDatabase, users } = require('./database');
 
 app.set('view engine', 'ejs');
@@ -25,8 +25,6 @@ app.get("/", (req, res) => {
   if (req.cookies["username"] !== '') {
     templateVars.username = req.cookies["username"];
   }
-
-  console.log(templateVars);
 
   res.render("pages/urls_index", templateVars);
 });
@@ -86,6 +84,17 @@ app.get("/u/:id", (req, res) => {
   res.redirect(templateVars.longURL);
 });
 
+app.get('/404', (req, res) => {
+  let userID = req.cookies["user_id"];
+
+  const templateVars = {
+    username: req.cookies["username"],
+    user: users[userID]
+  };
+
+  res.render("pages/urls_404", templateVars);
+});
+
 app.get('*', (req, res) => {
   let userID = req.cookies["user_id"];
 
@@ -94,20 +103,36 @@ app.get('*', (req, res) => {
     user: users[userID]
   };
 
-  res.status(404);
   res.render("pages/urls_404", templateVars);
 });
 
 ////// POST //////
 app.post("/register", (req, res) => {
   let userID = generateRandomString();
-  users[userID] = {};
-  users[userID]["id"] = userID;
-  users[userID]["email"] = req.body.email;
-  users[userID]["password"] = req.body.password;
+  let userEmail = req.body.email;
+  let userPwd = req.body.password;
+  let emailExists = emailLookup(userEmail, users);
 
-  res.cookie('user_id', userID);
-  res.redirect('/');
+  // Check for empty fields or existing user
+  if (! userPwd || ! userEmail) {
+    res.status(404);
+    res.redirect('404');
+  } else if (emailExists) {
+    res.status(404);
+    res.redirect('404');
+  } else {
+    // Build our new user in the database
+    users[userID] = {};
+    users[userID]["id"] = userID;
+    users[userID]["email"] = userEmail;
+    users[userID]["password"] = userPwd;
+
+    // Set the cookie
+    res.cookie('user_id', userID);
+    
+    // send user to index
+    res.redirect('/');
+  }
 });
 
 app.post("/login", (req, res) => {
