@@ -101,6 +101,16 @@ app.get('/403', (req, res) => {
   res.render("pages/urls_403", templateVars);
 });
 
+app.get('/400', (req, res) => {
+  let userID = req.cookies["user_id"];
+
+  const templateVars = {
+    user: users[userID]
+  };
+
+  res.render("pages/urls_400", templateVars);
+});
+
 app.get('*', (req, res) => {
   let userID = req.cookies["user_id"];
 
@@ -120,11 +130,9 @@ app.post("/register", (req, res) => {
 
   // Check for empty fields or existing user
   if (! userPwd || ! userEmail) {
-    res.status(404);
-    res.redirect('404');
+    res.status(400).send("Email address and password cannot be blank.");
   } else if (emailExists) {
-    res.status(404);
-    res.redirect('404');
+    res.status(400).send("Email address already exists. Try a different email address.");
   } else {
     // Build our new user in the database
     users[userID] = {};
@@ -151,9 +159,12 @@ app.post("/login", (req, res) => {
   if (user && checkPwd) {
     res.cookie('user_id', userID);
     res.redirect('/');
-  } else {
-    res.status(403);
-    res.redirect('/403');
+  } else if (!userEmail || !userPwd) {
+    res.status(403).send("Username and password are required!");
+  } else if (!user) {
+    res.status(403).send("Hmmmm. That email was not found.");
+  } else if (!checkPwd) {
+    res.status(403).send("Password Incorrect!!!!");
   }
 });
 
