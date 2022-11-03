@@ -3,7 +3,7 @@ const morgan = require("morgan");
 const app = express();
 const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
-const { generateRandomString, emailLookup, getUserID, passwordCheck } = require("./functions");
+const { generateRandomString, emailLookup, passwordCheck } = require("./functions");
 const { urlDatabase, users } = require('./database');
 
 app.set('view engine', 'ejs');
@@ -91,6 +91,16 @@ app.get('/404', (req, res) => {
   res.render("pages/urls_404", templateVars);
 });
 
+app.get('/403', (req, res) => {
+  let userID = req.cookies["user_id"];
+
+  const templateVars = {
+    user: users[userID]
+  };
+
+  res.render("pages/urls_403", templateVars);
+});
+
 app.get('*', (req, res) => {
   let userID = req.cookies["user_id"];
 
@@ -133,22 +143,23 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res) => {
   let userEmail = req.body.email;
   let userPwd = req.body.password;
-  let emailExists = emailLookup(userEmail, users);
-  let userID = getUserID(userEmail, users);
-  let checkPwd = passwordCheck(userEmail, userPwd, users);
+  let user = emailLookup(userEmail, users);
+  console.log("user", user);
+  let userID = user.id;
+  let checkPwd = passwordCheck(userPwd, user);
 
-  if (emailExists && checkPwd) {
+  if (user && checkPwd) {
     res.cookie('user_id', userID);
     res.redirect('/');
   } else {
-    res.status(404);
-    res.redirect('404');
+    res.status(403);
+    res.redirect('/403');
   }
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id', { path: '/' });
-  res.redirect('/');
+  res.redirect('/login');
 });
 
 app.post("/", (req, res) => {
