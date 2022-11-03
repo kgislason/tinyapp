@@ -101,45 +101,56 @@ app.post("/register", (req, res) => {
   // Check for empty fields or existing user
   if (! userPwd || ! userEmail) {
     res.status(400).send("Email address and password cannot be blank.");
-  } else if (emailExists) {
-    res.status(400).send("Email address already exists. Try a different email address.");
-  } else {
-    // Build our new user in the database
-    users[userID] = {};
-    users[userID]["id"] = userID;
-    users[userID]["email"] = userEmail;
-    users[userID]["password"] = userPwd;
-
-    // Set the cookie
-    res.cookie('user_id', userID);
-    
-    // send user to index
-    res.redirect('/');
   }
+  
+  if (emailExists) {
+    res.status(400).send("Email address already exists. Try a different email address.");
+  }
+  
+  // Build our new user in the database
+  users[userID] = {};
+  users[userID]["id"] = userID;
+  users[userID]["email"] = userEmail;
+  users[userID]["password"] = userPwd;
+  console.log(users);
+
+  // Set the cookie
+  res.cookie('user_id', userID);
+    
+  // send user to index
+  res.redirect('/');
 });
 
 app.post("/login", (req, res) => {
   let userEmail = req.body.email;
   let userPwd = req.body.password;
   let user = emailLookup(userEmail, users);
-  console.log("user", user);
-  let userID = user.id;
-  let checkPwd = passwordCheck(userPwd, user);
 
-  if (user && checkPwd) {
-    res.cookie('user_id', userID);
-    res.redirect('/');
-  } else if (!userEmail || !userPwd) {
+  if (!userEmail || !userPwd) {
     res.status(403).send("Username and password are required!");
-  } else if (!user) {
-    res.status(403).send("Hmmmm. That email was not found.");
-  } else if (!checkPwd) {
-    res.status(403).send("Password Incorrect!!!!");
   }
+  
+  if (!user) {
+    res.status(403).send("Hmmmm. That email was not found.");
+  }
+
+  if (user) {
+    if (!passwordCheck(userPwd, user)) {
+      res.status(403).send("Password Incorrect!!!!");
+    }
+
+    if (passwordCheck(userPwd, user)) {
+      res.cookie('user_id', user.id);
+      res.redirect('/');
+    }
+  }
+  console.log(users);
+
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id', { path: '/' });
+  console.log(users);
   res.redirect('/login');
 });
 
