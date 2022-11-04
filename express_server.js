@@ -14,15 +14,19 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 ////// ROUTES //////
-app.get("/", (req, res) => {
+app.get("/urls", (req, res) => {
   let userID = req.cookies["user_id"];
 
   const templateVars = {
     urls: urlDatabase,
-    user: users[userID]
+    user: users[userID],
   };
 
   res.render("pages/urls_index", templateVars);
+});
+
+app.get("/", (req, res) => {
+  res.redirect("/urls");
 });
 
 app.get('/urls/new', (req, res) => {
@@ -31,6 +35,11 @@ app.get('/urls/new', (req, res) => {
   const templateVars = {
     user: users[userID]
   };
+
+  // If the user is not logged in, redirect GET /urls/new to GET /login
+  if (!userID) {
+    res.redirect('/login');
+  }
 
   res.render("pages/urls_new", templateVars);
 });
@@ -42,8 +51,8 @@ app.get("/register", (req, res) => {
     user: users[userID]
   };
 
-  if (userID !== undefined) {
-    res.redirect('/');
+  if (userID) {
+    res.redirect('/urls');
   }
 
   res.render("pages/urls_register", templateVars);
@@ -57,8 +66,8 @@ app.get("/login", (req, res) => {
     user: users[userID]
   };
 
-  if (userID !== undefined) {
-    res.redirect('/');
+  if (userID) {
+    res.redirect('/urls');
   }
 
   res.render("pages/urls_login", templateVars);
@@ -78,7 +87,10 @@ app.get("/urls/:id", (req, res) => {
 
 // Redirect shortened urls to the LongURL
 app.get("/u/:id", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = '';
+  if (req.cookies["user_id"]) {
+    userID = req.cookies["user_id"];
+  }
 
   const templateVars = {
     user: users[userID],
@@ -86,7 +98,19 @@ app.get("/u/:id", (req, res) => {
     longURL: urlDatabase[req.params.id]
   };
 
-  res.redirect(templateVars.longURL);
+  console.log(templateVars.longURL);
+
+  console.log("If ", req.params.id === undefined);
+
+  if (templateVars.longURL) {
+    console.log("Hi");
+    res.redirect(templateVars.longURL);
+  }
+  res.render("pages/urls_404", templateVars);
+
+  // if (req.params.id !== undefined) {
+  //   res.redirect(templateVars.longURL);
+  // }
 });
 
 app.get('*', (req, res) => {
@@ -125,7 +149,7 @@ app.post("/register", (req, res) => {
   res.cookie('user_id', userID);
     
   // send user to index
-  res.redirect('/');
+  res.redirect('/urls');
 });
 
 app.post("/login", (req, res) => {
@@ -148,7 +172,7 @@ app.post("/login", (req, res) => {
 
     if (passwordCheck(userPwd, user)) {
       res.cookie('user_id', user.id);
-      res.redirect('/');
+      res.redirect('/urls');
     }
   }
 });
@@ -158,25 +182,32 @@ app.post("/logout", (req, res) => {
   res.redirect('/login');
 });
 
-app.post("/", (req, res) => {
-  //generate new short URL id
-  const random = generateRandomString(6);
+app.post("/urls", (req, res) => {
+  //If the user is not logged in, POST /urls should respond with an HTML message that tells the user why they cannot shorten URLs. Double check that in this case the URL is not added to the database.
+  let userID = req.cookies["user_id"];
 
-  // Add it to database:
-  urlDatabase[random] = req.body.longURL;
+  if (userID) {
+    //generate new short URL id
+    const random = generateRandomString(6);
 
-  // res.redirect('/' + random);
-  res.redirect('/');
+    // Add it to database:
+    urlDatabase[random] = req.body.longURL;
+
+    // res.redirect('/urls' + random);
+    res.redirect('/urls');
+  } else {
+    res.status(403).send("You must login to add new urls");
+  }
 });
 
 app.post("/urls/:id/update", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL;
-  res.redirect('/');
+  res.redirect('/urls');
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
-  res.redirect('/');
+  res.redirect('/urls');
 });
 
 ////// LISTENER //////

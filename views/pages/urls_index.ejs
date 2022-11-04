@@ -22,10 +22,20 @@
       <tbody>
         <% for (let id in urls) { %>
           <tr>
-            <td><a target="_blank" href="/u/<%= id %>"><%= id %></a></td>
-            <td><span style="word-break: break-all;"><%= urls[id] %></span></td>
-            <td><a href="/urls/<%= id %>" class="btn btn-outline-primary">Edit</a></td>
-            <td><form method="POST" action="/urls/<%= id %>/delete"><button name="<%= id %>" class="btn btn-outline-danger" type="submit">Delete</button></form></td>
+            <td>
+              <a target="_blank" href="/u/<%= id %>"><%= id %></a>
+            </td>
+            <td>
+              <span style="word-break: break-all;"><%= urls[id] %></span>
+            </td>
+            <td>
+              <a href="/urls/<%= id %>" class="btn btn-outline-primary">Edit</a>
+            </td>
+            <td>
+              <form method="POST" action="/urls/<%= id %>/delete">
+                <button name="<%= id %>" class="btn btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </td>
           </tr>
         <% } %>
       </tbody>
