@@ -42,6 +42,10 @@ app.get("/register", (req, res) => {
     user: users[userID]
   };
 
+  if (userID !== undefined) {
+    res.redirect('/');
+  }
+
   res.render("pages/urls_register", templateVars);
 });
 
@@ -52,6 +56,10 @@ app.get("/login", (req, res) => {
   const templateVars = {
     user: users[userID]
   };
+
+  if (userID !== undefined) {
+    res.redirect('/');
+  }
 
   res.render("pages/urls_login", templateVars);
 });
@@ -112,7 +120,6 @@ app.post("/register", (req, res) => {
   users[userID]["id"] = userID;
   users[userID]["email"] = userEmail;
   users[userID]["password"] = userPwd;
-  console.log(users);
 
   // Set the cookie
   res.cookie('user_id', userID);
@@ -144,13 +151,10 @@ app.post("/login", (req, res) => {
       res.redirect('/');
     }
   }
-  console.log(users);
-
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id', { path: '/' });
-  console.log(users);
   res.redirect('/login');
 });
 
@@ -177,5 +181,5 @@ app.post("/urls/:id/delete", (req, res) => {
 
 ////// LISTENER //////
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Tiny URL app listening on port ${PORT}!`);
 });
