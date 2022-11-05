@@ -10,16 +10,16 @@
   <%- include('../partials/_header'); %>
 
     <main class="py-5">
+      <% if (errMessage) { %>
+        <div class="alert alert-warning">
+          <%= errMessage %>
+        </div>
+      <% } %>
       <div class="card">
         <div class="card-header">
           <h1 class="h4 card-title mb-0">Login</h1>
         </div>
-        <div class="card-body">
-          <% if (errMessage) { %>
-            <div class="alert alert-warning">
-              <%= errMessage %>
-            </div>
-          <% } %>
+        <div class="card-body">          
           <form method="POST" action="/login">
             <div class="form-group">
               <label class="mr-1" for="email">Email:</label>

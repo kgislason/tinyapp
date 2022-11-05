@@ -3,7 +3,7 @@ const morgan = require("morgan");
 const app = express();
 const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
-const { generateRandomString, emailLookup, passwordCheck, urlsForUser } = require("./functions");
+const { generateRandomString, emailLookup, passwordCheck, urlsForUser, getUrlIdForCurrentUser } = require("./functions");
 const { urlDatabase, users } = require('./database');
 
 app.set('view engine', 'ejs');
@@ -27,6 +27,9 @@ app.get("/urls", (req, res) => {
     templateVars.errMessage = `You are not logged in. <a href=\"/register\">Register</a> or <a href="/login">login</a> to begin creating tiny urls!`;
   }
 
+  console.log(users);
+  console.log(urlDatabase);
+
   res.render("pages/urls_index", templateVars);
 });
 
@@ -44,7 +47,7 @@ app.get('/urls/new', (req, res) => {
 
   // If the user is not logged in, redirect GET /urls/new to GET /login
   if (!userID) {
-    templateVars.errMessage = "You don't have access to add a new url. Try logging in again.";
+    templateVars.errMessage = `You don't have access to add a new url. Try logging in.`;
     res.render('pages/urls_login', templateVars);
   }
 
@@ -85,27 +88,43 @@ app.get("/login", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   let userID = req.cookies["user_id"];
   let urlID = req.params.id;
+  let userUrls = urlsForUser(userID);
+  let isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
 
   const templateVars = {
     id: urlID,
     longURL: urlDatabase[urlID].longURL,
     user: users[userID],
+    errMessage: '',
+    hasAccess: false,
   };
 
+  if (!userID) {
+    templateVars.errMessage = `You need to <a href="/login">login</a> to access this page`;
+  }
+
+  if (isUsersUrl.length === 0) {
+    templateVars.errMessage = `You do not have access to this page. Go <a href="/">back home</a>`;
+  }
+
+  console.log(isUsersUrl);
+  if (isUsersUrl.length > 0 ) {
+    templateVars.hasAccess = true;
+  }
+ 
   res.render("pages/urls_show", templateVars);
 });
 
 // Redirect shortened urls to the LongURL
 app.get("/u/:id", (req, res) => {
-  let userID = '';
-  if (req.cookies["user_id"]) {
-    userID = req.cookies["user_id"];
-  }
+  let userID = req.cookies["user_id"];
+  let longURL = urlDatabase[req.params.id].longURL;
+  console.log(longURL);
 
   const templateVars = {
     user: users[userID],
     id: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL,
+    longURL: longURL,
   };
 
   console.log(templateVars.longURL);
@@ -217,7 +236,10 @@ app.post("/urls", (req, res) => {
     const random = generateRandomString(6);
 
     // Add it to database:
-    urlDatabase[random].longURL = req.body.longURL;
+    urlDatabase[random] = {
+      longURL: req.body.longURL,
+      userID: userID,
+    };
 
     // res.redirect('/urls' + random);
     res.redirect('/urls');
@@ -227,13 +249,57 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/update", (req, res) => {
-  urlDatabase[req.params.id].longURL = req.body.longURL;
-  res.redirect('/urls');
+  let userID = req.cookies["user_id"];
+  let urlID = req.params.id;
+  let userUrls = urlsForUser(userID);
+  let isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
+
+  const templateVars = {
+    errMessage: '',
+  }
+
+  if (!userID) {
+    templateVars.errMessage = `You do not have access to update urls. Try logging in.`;
+    res.status(403).render('pages/urls_index', templateVars);
+  }
+
+  if (isUsersUrl.length === 0) {
+    templateVars.errMessage = `You do not have access to perform this action!`;
+    res.status(403).render('pages/urls_index', templateVars);
+  }
+
+  if (isUsersUrl.length > 0) {
+    urlDatabase[req.params.id].longURL = req.body.longURL;
+    res.redirect('/urls');  
+  }
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect('/urls');
+  let userID = req.cookies["user_id"];
+  let urlID = req.params.id;
+  let userUrls = urlsForUser(userID);
+  let isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
+
+  const templateVars = {
+    urls: urlsForUser(userID),
+    user: users[userID],
+    errMessage: ''
+  };
+
+  if (!userID) {
+    templateVars.errMessage = `You do not have access to delete urls. Try logging in.`;
+    res.status(403).render('pages/urls_index', templateVars);
+  }
+
+  if (isUsersUrl.length === 0) {
+    templateVars.errMessage = `You do not have access to delete this url!`;
+    res.status(403).render('pages/urls_index', templateVars);
+  }
+
+  if (isUsersUrl.length > 0) {
+    delete urlDatabase[req.params.id];
+    res.redirect('/urls');
+  }  
 });
 
 ////// LISTENER //////

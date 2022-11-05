@@ -36,6 +36,10 @@ const urlsForUser = (id) => {
   return obj;
 };
 
+const getUrlIdForCurrentUser = (id, obj) => {
+  return Object.keys(obj).filter( (item) => item == id );
+};
+
 const passwordCheck = (password, user) => {
   if (user["password"] === password) {
     return true;
@@ -43,4 +47,10 @@ const passwordCheck = (password, user) => {
   return false;
 };
 
-module.exports = { generateRandomString, emailLookup, passwordCheck, urlsForUser };
+module.exports = { 
+  generateRandomString,
+  emailLookup,
+  passwordCheck,
+  urlsForUser,
+  getUrlIdForCurrentUser,
+};

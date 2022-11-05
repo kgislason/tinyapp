@@ -8,30 +8,35 @@
 <%- include('../partials/_header'); %>
 
 <main class="py-5">
+  <% if (errMessage) { %>
+    <div class="alert alert-warning">
+      <%- errMessage %>
+    </div>
+  <% } %>
+  <% if (user && hasAccess) { %>
   <div class="card">
     <div class="card-header">
       <h1 class="h4 card-title">TinyURL for: <%= longURL %></h1>
-      <p class="card-text">
-        Short URL ID: <a target="_blank" href="/u/<%= id %>"><%= id %></a>
-      </p>
+      
+        <p class="card-text">
+          Short URL ID: <a target="_blank" href="/u/<%= id %>"><%= id %></a>
+        </p>
     </div>
     <div class="card-body">
-      <h4>Edit</h4>
-      <form method="POST" action="/urls/<%= id %>/update">
-        <div class="form-group form-inline justify-content-start">
-          <label class="mr-1" for="longURL">Update Long URL:</label>
-          <div class="d-flex"><input class="form-control mr-1" type="text" name="longURL" id="longURL" />
-          <button name="<%= id %>" class="btn btn-primary" type="submit">Save</button></div>
-        </div>
-      </form>
-    </div>
-    <div class="card-footer text-muted">
-      
+        <h4>Edit</h4>
+        <form method="POST" action="/urls/<%= id %>/update">
+          <div class="form-group form-inline justify-content-start">
+            <label class="mr-1" for="longURL">Update Long URL:</label>
+            <div class="d-flex"><input class="form-control mr-1" type="text" name="longURL" id="longURL" />
+            <button name="<%= id %>" class="btn btn-primary" type="submit">Save</button></div>
+          </div>
+        </form>
     </div>
   </div>
   <div class="mt-4">
     <a href="/urls" class="btn btn-outline-primary">Back</a>
   </div>
+  <% } %>
 </main>
 
 <footer>
