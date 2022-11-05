@@ -4,7 +4,7 @@ const app = express();
 const cookieParser = require('cookie-parser');
 const bcrypt = require("bcryptjs");
 const PORT = 8080; // default port 8080
-const { generateRandomString, emailLookup, passwordCheck, urlsForUser, getUrlIdForCurrentUser } = require("./functions");
+const { generateRandomString, getUserByEmail, passwordCheck, urlsForUser, getUrlIdForCurrentUser } = require("./helpers");
 const { urlDatabase, users } = require('./database');
 
 app.set('view engine', 'ejs');
@@ -155,7 +155,7 @@ app.post("/register", (req, res) => {
   const userEmail = req.body.email;
   const userPwd = req.body.password;
   const hashedPassword = bcrypt.hashSync(userPwd, 10);
-  const emailExists = emailLookup(userEmail, users);
+  const emailExists = getUserByEmail(userEmail, users);
 
   const templateVars = {
     errMessage: '',
@@ -193,7 +193,7 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res) => {
   let userEmail = req.body.email;
   let userPwd = req.body.password;
-  let user = emailLookup(userEmail, users);
+  let user = getUserByEmail(userEmail, users);
   let userID = req.cookies["user_id"];
 
   const templateVars = {

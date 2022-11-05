@@ -12,7 +12,7 @@ const generateRandomString = (length = 8) => {
   return result;
 };
 
-const emailLookup = (email, users) => {
+const getUserByEmail = (email, users) => {
   let objArr = Object.keys(users);
   for (let item of objArr) {
     if (email === users[item].email) {
@@ -46,7 +46,7 @@ const passwordCheck = (password, user) => {
 
 module.exports = { 
   generateRandomString,
-  emailLookup,
+  getUserByEmail,
   passwordCheck,
   urlsForUser,
   getUrlIdForCurrentUser,
