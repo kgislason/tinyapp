@@ -19,7 +19,7 @@ const getUserByEmail = (email, users) => {
       return users[item];
     }
   }
-  return false;
+  return;
 };
 
 const urlsForUser = (id) => {

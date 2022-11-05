@@ -17,9 +17,16 @@ const testUsers = {
 
 describe('getUserByEmail', function() {
   it('should return a user with valid email', function() {
-    const user = getUserByEmail("user@example.com", testUsers)
+    const user = getUserByEmail("user@example.com", testUsers);
     const expectedUserID = "userRandomID";
     // Write your assert statement here
     assert.equal(user.id, expectedUserID);
+  });
+
+  it('should return undefined if the email is not found in the database', function() {
+    const user = getUserByEmail("nobody@example.com", testUsers);
+    const expectedUser = undefined;
+
+    assert.equal(user, expectedUser);
   });
 });
