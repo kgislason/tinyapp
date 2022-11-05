@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
 const PORT = 8080; // default port 8080
 const { generateRandomString, getUserByEmail, passwordCheck, urlsForUser, getUrlIdForCurrentUser } = require("./helpers");
@@ -10,13 +11,18 @@ const { urlDatabase, users } = require('./database');
 app.set('view engine', 'ejs');
 app.use(morgan('dev'));
 app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['user_id'],
+}));
 
 ////// Body Parser - needs to come before routes //////
 app.use(express.urlencoded({ extended: true }));
 
 ////// ROUTES //////
 app.get("/urls", (req, res) => {
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
 
   const templateVars = {
     urls: urlsForUser(userID),
@@ -25,7 +31,7 @@ app.get("/urls", (req, res) => {
   };
 
   if (!userID) {
-    templateVars.errMessage = `You are not logged in. <a href=\"/register\">Register</a> or <a href="/login">login</a> to begin creating tiny urls!`;
+    templateVars.errMessage = `You are not logged in. <a href="/register">Register</a> or <a href="/login">login</a> to begin creating tiny urls!`;
   }
 
   console.log(users);
@@ -39,7 +45,8 @@ app.get("/", (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
 
   const templateVars = {
     user: users[userID],
@@ -56,7 +63,8 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
 
   const templateVars = {
     user: users[userID],
@@ -72,7 +80,8 @@ app.get("/register", (req, res) => {
 
 
 app.get("/login", (req, res) => {
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
 
   const templateVars = {
     user: users[userID],
@@ -87,7 +96,8 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let urlID = req.params.id;
   let userUrls = urlsForUser(userID);
   let isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
@@ -109,7 +119,7 @@ app.get("/urls/:id", (req, res) => {
   }
 
   console.log(isUsersUrl);
-  if (isUsersUrl.length > 0 ) {
+  if (isUsersUrl.length > 0) {
     templateVars.hasAccess = true;
   }
  
@@ -118,7 +128,8 @@ app.get("/urls/:id", (req, res) => {
 
 // Redirect shortened urls to the LongURL
 app.get("/u/:id", (req, res) => {
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let longURL = urlDatabase[req.params.id].longURL;
   console.log(longURL);
 
@@ -140,7 +151,8 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get('*', (req, res) => {
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
 
   const templateVars = {
     user: users[userID]
@@ -183,7 +195,8 @@ app.post("/register", (req, res) => {
     users[userID]["password"] = hashedPassword;
 
     // Set the cookie
-    res.cookie('user_id', userID);
+    // res.cookie('user_id', userID);
+    req.session.user_id = userID;
       
     // send user to index
     res.redirect('/urls');
@@ -194,7 +207,8 @@ app.post("/login", (req, res) => {
   let userEmail = req.body.email;
   let userPwd = req.body.password;
   let user = getUserByEmail(userEmail, users);
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
+  // let userID = req.cookies["user_id"];
 
   const templateVars = {
     user: users[userID],
@@ -218,20 +232,23 @@ app.post("/login", (req, res) => {
     }
 
     if (passwordCheck(userPwd, user)) {
-      res.cookie('user_id', user.id);
+      // res.cookie('user_id', user.id);
+      res.session.user_id = user.id;
       res.redirect('/urls');
     }
   }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id', { path: '/' });
+  // res.clearCookie('user_id', { path: '/' });
+  req.session = null
   res.redirect('/login');
 });
 
 app.post("/urls", (req, res) => {
   //If the user is not logged in, POST /urls should respond with an HTML message that tells the user why they cannot shorten URLs. Double check that in this case the URL is not added to the database.
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
 
   if (userID) {
     //generate new short URL id
@@ -251,14 +268,15 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/update", (req, res) => {
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let urlID = req.params.id;
   let userUrls = urlsForUser(userID);
   let isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
 
   const templateVars = {
     errMessage: '',
-  }
+  };
 
   if (!userID) {
     templateVars.errMessage = `You do not have access to update urls. Try logging in.`;
@@ -272,12 +290,13 @@ app.post("/urls/:id/update", (req, res) => {
 
   if (isUsersUrl.length > 0) {
     urlDatabase[req.params.id].longURL = req.body.longURL;
-    res.redirect('/urls');  
+    res.redirect('/urls');
   }
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  let userID = req.cookies["user_id"];
+  // let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let urlID = req.params.id;
   let userUrls = urlsForUser(userID);
   let isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
@@ -301,7 +320,7 @@ app.post("/urls/:id/delete", (req, res) => {
   if (isUsersUrl.length > 0) {
     delete urlDatabase[req.params.id];
     res.redirect('/urls');
-  }  
+  }
 });
 
 ////// LISTENER //////

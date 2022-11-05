@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 const { urlDatabase } = require("./database");
 
 const generateRandomString = (length = 8) => {
@@ -26,8 +27,8 @@ const urlsForUser = (id) => {
   let objArr = Object.keys(urlDatabase);
   let obj = {};
   if (!id) return obj;
-  let filteredArr = objArr.filter( (item) => { 
-    return urlDatabase[item].userID === id
+  let filteredArr = objArr.filter((item) => {
+    return urlDatabase[item].userID === id;
   });
 
   for (let key of filteredArr) {
@@ -37,14 +38,14 @@ const urlsForUser = (id) => {
 };
 
 const getUrlIdForCurrentUser = (id, obj) => {
-  return Object.keys(obj).filter( (item) => item == id );
+  return Object.keys(obj).filter((item) => item === id);
 };
 
 const passwordCheck = (password, user) => {
   bcrypt.compareSync(password, user["password"]); // returns true or false
 };
 
-module.exports = { 
+module.exports = {
   generateRandomString,
   getUserByEmail,
   passwordCheck,
