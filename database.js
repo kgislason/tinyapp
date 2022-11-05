@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 
 ////// Mock Database ///////
 
@@ -32,17 +33,17 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10),
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: bcrypt.hashSync("dishwasher-funk", 10),
   },
   pxpdmdLO: {
     id: "pxpdmdLO",
     email: "kristy@mailinator.com",
-    password: "1234567",
+    password: bcrypt.hashSync("1234567", 10),
   }
 };
 

@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcryptjs");
 const PORT = 8080; // default port 8080
 const { generateRandomString, emailLookup, passwordCheck, urlsForUser, getUrlIdForCurrentUser } = require("./functions");
 const { urlDatabase, users } = require('./database');
@@ -150,10 +151,11 @@ app.get('*', (req, res) => {
 
 ////// POST //////
 app.post("/register", (req, res) => {
-  let userID = generateRandomString();
-  let userEmail = req.body.email;
-  let userPwd = req.body.password;
-  let emailExists = emailLookup(userEmail, users);
+  const userID = generateRandomString();
+  const userEmail = req.body.email;
+  const userPwd = req.body.password;
+  const hashedPassword = bcrypt.hashSync(userPwd, 10);
+  const emailExists = emailLookup(userEmail, users);
 
   const templateVars = {
     errMessage: '',
@@ -178,7 +180,7 @@ app.post("/register", (req, res) => {
     users[userID] = {};
     users[userID]["id"] = userID;
     users[userID]["email"] = userEmail;
-    users[userID]["password"] = userPwd;
+    users[userID]["password"] = hashedPassword;
 
     // Set the cookie
     res.cookie('user_id', userID);

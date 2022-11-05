@@ -41,10 +41,7 @@ const getUrlIdForCurrentUser = (id, obj) => {
 };
 
 const passwordCheck = (password, user) => {
-  if (user["password"] === password) {
-    return true;
-  }
-  return false;
+  bcrypt.compareSync(password, user["password"]); // returns true or false
 };
 
 module.exports = { 
