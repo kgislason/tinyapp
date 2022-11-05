@@ -9,6 +9,12 @@
 
 <main class="py-5">
   <h1 class="h3">My URLs</h1>
+  <% if (errMessage) { %>
+    <div class="alert alert-warning">
+      <%- errMessage %>
+    </div>
+  <% } %>
+  <% if (user) { %>
   <div class="table-responsive">
     <table class="table table-striped">
       <thead>
@@ -26,7 +32,7 @@
               <a target="_blank" href="/u/<%= id %>"><%= id %></a>
             </td>
             <td>
-              <span style="word-break: break-all;"><%= urls[id] %></span>
+              <span style="word-break: break-all;"><%= urls[id].longURL %></span>
             </td>
             <td>
               <a href="/urls/<%= id %>" class="btn btn-outline-primary">Edit</a>
@@ -44,6 +50,7 @@
       <a href="/urls/new" class="btn btn-primary">Add New Tiny URL</a>
     </div>
   </div>
+  <% } // END IF USER IS LOGGED IN %>
 </main>
 
 <footer>

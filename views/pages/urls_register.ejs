@@ -15,6 +15,11 @@
           <h1 class="h4 card-title mb-0">Register</h1>
         </div>
         <div class="card-body">
+          <% if (errMessage) { %>
+            <div class="alert alert-warning">
+              <%= errMessage %>
+            </div>
+          <% } %>
           <form method="POST" action="/register">
             <div class="form-group">
               <label class="mr-1" for="email">Email:</label>

@@ -3,7 +3,7 @@ const morgan = require("morgan");
 const app = express();
 const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
-const { generateRandomString, emailLookup, passwordCheck } = require("./functions");
+const { generateRandomString, emailLookup, passwordCheck, urlsForUser } = require("./functions");
 const { urlDatabase, users } = require('./database');
 
 app.set('view engine', 'ejs');
@@ -18,9 +18,14 @@ app.get("/urls", (req, res) => {
   let userID = req.cookies["user_id"];
 
   const templateVars = {
-    urls: urlDatabase,
+    urls: urlsForUser(userID),
     user: users[userID],
+    errMessage: ''
   };
+
+  if (!userID) {
+    templateVars.errMessage = `You are not logged in. <a href=\"/register\">Register</a> or <a href="/login">login</a> to begin creating tiny urls!`;
+  }
 
   res.render("pages/urls_index", templateVars);
 });
@@ -33,12 +38,14 @@ app.get('/urls/new', (req, res) => {
   let userID = req.cookies["user_id"];
 
   const templateVars = {
-    user: users[userID]
+    user: users[userID],
+    errMessage: '',
   };
 
   // If the user is not logged in, redirect GET /urls/new to GET /login
   if (!userID) {
-    res.redirect('/login');
+    templateVars.errMessage = "You don't have access to add a new url. Try logging in again.";
+    res.render('pages/urls_login', templateVars);
   }
 
   res.render("pages/urls_new", templateVars);
@@ -48,7 +55,8 @@ app.get("/register", (req, res) => {
   let userID = req.cookies["user_id"];
 
   const templateVars = {
-    user: users[userID]
+    user: users[userID],
+    errMessage: '',
   };
 
   if (userID) {
@@ -63,7 +71,8 @@ app.get("/login", (req, res) => {
   let userID = req.cookies["user_id"];
 
   const templateVars = {
-    user: users[userID]
+    user: users[userID],
+    errMessage: '',
   };
 
   if (userID) {
@@ -75,11 +84,12 @@ app.get("/login", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   let userID = req.cookies["user_id"];
+  let urlID = req.params.id;
 
   const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    user: users[userID]
+    id: urlID,
+    longURL: urlDatabase[urlID].longURL,
+    user: users[userID],
   };
 
   res.render("pages/urls_show", templateVars);
@@ -95,7 +105,7 @@ app.get("/u/:id", (req, res) => {
   const templateVars = {
     user: users[userID],
     id: req.params.id,
-    longURL: urlDatabase[req.params.id]
+    longURL: urlDatabase[req.params.id].longURL,
   };
 
   console.log(templateVars.longURL);
@@ -107,10 +117,6 @@ app.get("/u/:id", (req, res) => {
     res.redirect(templateVars.longURL);
   }
   res.render("pages/urls_404", templateVars);
-
-  // if (req.params.id !== undefined) {
-  //   res.redirect(templateVars.longURL);
-  // }
 });
 
 app.get('*', (req, res) => {
@@ -130,44 +136,64 @@ app.post("/register", (req, res) => {
   let userPwd = req.body.password;
   let emailExists = emailLookup(userEmail, users);
 
+  const templateVars = {
+    errMessage: '',
+  };
+
   // Check for empty fields or existing user
   if (! userPwd || ! userEmail) {
-    res.status(400).send("Email address and password cannot be blank.");
+    templateVars.errMessage = "Email address and password cannot be blank";
+    //res.status(400).send(errMessage);
+    res.status(400).render('pages/urls_register', templateVars);
   }
   
+  // Check if email exists in database
   if (emailExists) {
-    res.status(400).send("Email address already exists. Try a different email address.");
-  }
-  
-  // Build our new user in the database
-  users[userID] = {};
-  users[userID]["id"] = userID;
-  users[userID]["email"] = userEmail;
-  users[userID]["password"] = userPwd;
+    templateVars.errMessage = `Email address already exists. Try a different email address or try logging in with your existing account.`;
 
-  // Set the cookie
-  res.cookie('user_id', userID);
-    
-  // send user to index
-  res.redirect('/urls');
+    res.status(400).render('pages/urls_register', templateVars);
+  }
+
+  if (!emailExists && userPwd && userEmail) {
+    // Build our new user in the database
+    users[userID] = {};
+    users[userID]["id"] = userID;
+    users[userID]["email"] = userEmail;
+    users[userID]["password"] = userPwd;
+
+    // Set the cookie
+    res.cookie('user_id', userID);
+      
+    // send user to index
+    res.redirect('/urls');
+  }
 });
 
 app.post("/login", (req, res) => {
   let userEmail = req.body.email;
   let userPwd = req.body.password;
   let user = emailLookup(userEmail, users);
+  let userID = req.cookies["user_id"];
+
+  const templateVars = {
+    user: users[userID],
+    errMessage: '',
+  };
 
   if (!userEmail || !userPwd) {
-    res.status(403).send("Username and password are required!");
+    templateVars.errMessage = "Username and password are required.";
+    res.status(403).render("pages/urls_login", templateVars);
   }
   
   if (!user) {
-    res.status(403).send("Hmmmm. That email was not found.");
+    templateVars.errMessage = "Hmmmm. That email was not found.";
+    res.status(403).render("pages/urls_login", templateVars);
   }
 
   if (user) {
     if (!passwordCheck(userPwd, user)) {
-      res.status(403).send("Password Incorrect!!!!");
+      templateVars.errMessage = "Password Incorrect!!!!";
+      res.status(403).render("pages/urls_login", templateVars);
     }
 
     if (passwordCheck(userPwd, user)) {
@@ -191,7 +217,7 @@ app.post("/urls", (req, res) => {
     const random = generateRandomString(6);
 
     // Add it to database:
-    urlDatabase[random] = req.body.longURL;
+    urlDatabase[random].longURL = req.body.longURL;
 
     // res.redirect('/urls' + random);
     res.redirect('/urls');
@@ -201,7 +227,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/update", (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
+  urlDatabase[req.params.id].longURL = req.body.longURL;
   res.redirect('/urls');
 });
 
