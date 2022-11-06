@@ -10,25 +10,26 @@ const {
   getUserByEmail,
   passwordCheck,
   urlsForUser,
-  getUrlIdForCurrentUser
+  getUrlIdForCurrentUser,
+  urlIdExists
 } = require("./helpers");
 
-////// Database ///////
+////// Database //////
 const { urlDatabase, users } = require('./database');
 
-////// Express Config /////
+////// Express Config //////
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 
-///// Template Engine /////
+////// Template Engine //////
 app.set('view engine', 'ejs');
 
 ////// Middleware //////
-app.use(morgan('dev')); // For logging
+app.use(morgan('dev'));
 app.use(cookieSession({
   name: 'session',
   keys: ['$C&F)J@NcRfUjXn2r4u7x!A%D*G-KaPd', 'VkYp3s6v8y/B?E(H+MbQeThWmZq4t7w!'],
-  maxAge: 10 * 60 * 1000
+  maxAge: 10 * 60 * 1000 // 10 min
 }));
 
 ////// Body Parser - needs to come before routes //////
@@ -36,7 +37,6 @@ app.use(express.urlencoded({ extended: true }));
 
 ////// ROUTES //////
 app.get("/urls", (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
 
   const templateVars = {
@@ -49,9 +49,6 @@ app.get("/urls", (req, res) => {
     templateVars.errMessage = `You are not logged in. <a href="/register">Register</a> or <a href="/login">login</a> to begin creating tiny urls!`;
   }
 
-  console.log(users);
-  console.log(urlDatabase);
-
   res.render("pages/urls_index", templateVars);
 });
 
@@ -60,7 +57,6 @@ app.get("/", (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
 
   const templateVars = {
@@ -68,17 +64,17 @@ app.get('/urls/new', (req, res) => {
     errMessage: '',
   };
 
-  // If the user is not logged in, redirect GET /urls/new to GET /login
   if (!userID) {
     templateVars.errMessage = `You don't have access to add a new url. Try logging in.`;
     res.render('pages/urls_login', templateVars);
   }
 
-  res.render("pages/urls_new", templateVars);
+  if (userID) {
+    res.render("pages/urls_new", templateVars);
+  }
 });
 
 app.get("/register", (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
 
   const templateVars = {
@@ -93,9 +89,7 @@ app.get("/register", (req, res) => {
   res.render("pages/urls_register", templateVars);
 });
 
-
 app.get("/login", (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
 
   const templateVars = {
@@ -111,7 +105,6 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
   const urlID = req.params.id;
   const userUrls = urlsForUser(userID, urlDatabase);
@@ -119,7 +112,6 @@ app.get("/urls/:id", (req, res) => {
 
   const templateVars = {
     id: urlID,
-    longURL: urlDatabase[urlID].longURL,
     user: users[userID],
     errMessage: '',
     hasAccess: false,
@@ -129,40 +121,40 @@ app.get("/urls/:id", (req, res) => {
     templateVars.errMessage = `You need to <a href="/login">login</a> to access this page`;
   }
 
-  if (isUsersUrl.length === 0) {
+  if (userID && isUsersUrl.length === 0) {
     templateVars.errMessage = `You do not have access to this page. Go <a href="/">back home</a>`;
   }
 
-  console.log(isUsersUrl);
   if (isUsersUrl.length > 0) {
     templateVars.hasAccess = true;
+    templateVars.longURL = urlDatabase[urlID].longURL;
   }
  
   res.render("pages/urls_show", templateVars);
 });
 
-// Redirect shortened urls to the LongURL
+////// Redirect shortened urls to the LongURL //////
 app.get("/u/:id", (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
-  const longURL = urlDatabase[req.params.id].longURL;
-  console.log(longURL);
+  const urlID = req.params.id;
 
   const templateVars = {
+    id: urlID,
     user: users[userID],
-    id: req.params.id,
-    longURL: longURL,
+    errMessage: '',
   };
 
-  if (templateVars.longURL) {
-    console.log("Hi");
-    res.redirect(templateVars.longURL);
+  if (!urlIdExists(urlID, urlDatabase)) {
+    res.status(404).render("pages/urls_404", templateVars);
   }
-  res.render("pages/urls_404", templateVars);
+
+  if (userID && urlIdExists(urlID, urlDatabase)) {
+    const longURL = urlDatabase[urlID].longURL;
+    res.redirect(longURL);
+  }
 });
 
 app.get('*', (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
 
   const templateVars = {
@@ -186,14 +178,11 @@ app.post("/register", (req, res) => {
     errMessage: '',
   };
 
-  // Check for empty fields or existing user
   if (! userPwd || ! userEmail) {
     templateVars.errMessage = "Email address and password cannot be blank";
-    //res.status(400).send(errMessage);
     res.status(400).render('pages/urls_register', templateVars);
   }
   
-  // Check if email exists in database
   if (emailExists) {
     templateVars.errMessage = `Email address already exists. Try a different email address or try logging in with your existing account.`;
 
@@ -201,17 +190,13 @@ app.post("/register", (req, res) => {
   }
 
   if (!emailExists && userPwd && userEmail) {
-    // Build our new user in the database
     users[userID] = {};
     users[userID]["id"] = userID;
     users[userID]["email"] = userEmail;
     users[userID]["password"] = hashedPassword;
 
-    // Set the cookie
-    // res.cookie('user_id', userID);
     req.session.user_id = userID;
       
-    // send user to index
     res.redirect('/urls');
   }
 });
@@ -221,7 +206,6 @@ app.post("/login", (req, res) => {
   const userEmail = req.body.email;
   const userPwd = req.body.password;
   const user = getUserByEmail(userEmail, users);
-  // const userID = req.cookies["user_id"];
 
   const templateVars = {
     user: users[userID],
@@ -238,9 +222,6 @@ app.post("/login", (req, res) => {
     res.status(403).render("pages/urls_login", templateVars);
   }
 
-  console.log(typeof userPwd);
-  console.log(typeof user.password);
-
   if (user) {
     if (!passwordCheck(userPwd, user)) {
       templateVars.errMessage = "Password Incorrect!!!!";
@@ -248,7 +229,6 @@ app.post("/login", (req, res) => {
     }
 
     if (passwordCheck(userPwd, user)) {
-      // res.cookie('user_id', user.id);
       req.session.user_id = user.id;
       res.redirect('/urls');
     }
@@ -256,36 +236,30 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  // res.clearCookie('user_id', { path: '/' });
   req.session.user_id = null;
   req.session = null;
   res.redirect('/login');
 });
 
 app.post("/urls", (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
-  console.log(userID);
 
   if (userID) {
-    //generate new short URL id
     const random = generateRandomString(6);
 
-    // Add it to database:
     urlDatabase[random] = {
       longURL: req.body.longURL,
       userID: userID,
     };
 
-    // res.redirect('/urls' + random);
     res.redirect('/urls');
   } else {
     res.status(403).send("You must login to add new urls");
   }
 });
 
+////// UPDATE //////
 app.post("/urls/:id/update", (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
   const urlID = req.params.id;
   const userUrls = urlsForUser(userID, urlDatabase);
@@ -311,8 +285,9 @@ app.post("/urls/:id/update", (req, res) => {
   }
 });
 
+
+////// DELETE ///////
 app.post("/urls/:id/delete", (req, res) => {
-  // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
   const urlID = req.params.id;
   const userUrls = urlsForUser(userID, urlDatabase);

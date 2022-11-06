@@ -17,32 +17,27 @@ const urlDatabase = {
     longURL: "https://www.youtube.com/channel/UCO1cgjhGzsSYb1rsB4bFe4Q",
     userID: "pxpdmdLO",
   },
-  b6UTxQ: {
+  "b6UTxQ": {
     longURL: "https://www.tsn.ca",
     userID: "user2RandomID",
   },
-  i3BoGr: {
+  "i3BoGr": {
     longURL: "https://www.google.ca",
     userID: "pxpdmdLO",
   },
 };
 
 const users = {
-  // userRandomID: {
-  //   id: "userRandomID",
-  //   email: "user@example.com",
-  //   password: bcrypt.hashSync("purple-monkey-dinosaur", 10),
-  // },
-  // user2RandomID: {
-  //   id: "user2RandomID",
-  //   email: "user2@example.com",
-  //   password: bcrypt.hashSync("dishwasher-funk", 10),
-  // },
-  // pxpdmdLO: {
-  //   id: "pxpdmdLO",
-  //   email: "kristy@mailinator.com",
-  //   password: bcrypt.hashSync("1234567", 10),
-  // }
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
 };
 
 module.exports = { urlDatabase, users };

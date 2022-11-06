@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 
+// Returns a random ID of letters, default length: 8
 const generateRandomString = (length = 8) => {
   let result = '';
   const char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -23,6 +24,7 @@ const getUserByEmail = (email, users) => {
   return;
 };
 
+// Returns an object with all urls for a given user ID
 const urlsForUser = (id, urlDatabase) => {
   let objArr = Object.keys(urlDatabase);
   let obj = {};
@@ -38,12 +40,25 @@ const urlsForUser = (id, urlDatabase) => {
   return obj;
 };
 
+// Returns true or false if a given URL id is associated with the current user
 const getUrlIdForCurrentUser = (id, userObj) => {
   return Object.keys(userObj).filter((item) => item === id);
 };
 
+// Checks the password entered at login against the password in user database
 const passwordCheck = (password, userObj) => {
   return bcrypt.compareSync(password, userObj.password); // returns true or false
+};
+
+// Check if id exists in the database
+const urlIdExists = (urlID, urlDatabase) => {
+  let result = false;
+  for (let item of Object.keys(urlDatabase)) {
+    if (item === urlID) {
+      result = true;
+    }
+  }
+  return result;
 };
 
 module.exports = {
@@ -52,4 +67,5 @@ module.exports = {
   passwordCheck,
   urlsForUser,
   getUrlIdForCurrentUser,
+  urlIdExists,
 };
