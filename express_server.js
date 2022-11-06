@@ -1,19 +1,34 @@
+////// Packages //////
 const express = require("express");
 const morgan = require("morgan");
-const app = express();
-const cookieParser = require('cookie-parser');
-const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
-const PORT = 8080; // default port 8080
-const { generateRandomString, getUserByEmail, passwordCheck, urlsForUser, getUrlIdForCurrentUser } = require("./helpers");
+const cookieSession = require('cookie-session');
+
+////// Helpers //////
+const {
+  generateRandomString,
+  getUserByEmail,
+  passwordCheck,
+  urlsForUser,
+  getUrlIdForCurrentUser
+} = require("./helpers");
+
+////// Database ///////
 const { urlDatabase, users } = require('./database');
 
+////// Express Config /////
+const app = express();
+const PORT = 8080; // default port 8080
+
+///// Template Engine /////
 app.set('view engine', 'ejs');
-app.use(morgan('dev'));
-app.use(cookieParser());
+
+////// Middleware //////
+app.use(morgan('dev')); // For logging
 app.use(cookieSession({
   name: 'session',
-  keys: ['user_id'],
+  keys: ['$C&F)J@NcRfUjXn2r4u7x!A%D*G-KaPd', 'VkYp3s6v8y/B?E(H+MbQeThWmZq4t7w!'],
+  maxAge: 10 * 60 * 1000
 }));
 
 ////// Body Parser - needs to come before routes //////
@@ -21,12 +36,12 @@ app.use(express.urlencoded({ extended: true }));
 
 ////// ROUTES //////
 app.get("/urls", (req, res) => {
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
 
   const templateVars = {
-    urls: urlsForUser(userID),
     user: users[userID],
+    urls: urlsForUser(userID, urlDatabase),
     errMessage: ''
   };
 
@@ -45,8 +60,8 @@ app.get("/", (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
 
   const templateVars = {
     user: users[userID],
@@ -63,8 +78,8 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
 
   const templateVars = {
     user: users[userID],
@@ -80,8 +95,8 @@ app.get("/register", (req, res) => {
 
 
 app.get("/login", (req, res) => {
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
 
   const templateVars = {
     user: users[userID],
@@ -96,11 +111,11 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
-  let urlID = req.params.id;
-  let userUrls = urlsForUser(userID);
-  let isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
+  const urlID = req.params.id;
+  const userUrls = urlsForUser(userID, urlDatabase);
+  const isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
 
   const templateVars = {
     id: urlID,
@@ -128,9 +143,9 @@ app.get("/urls/:id", (req, res) => {
 
 // Redirect shortened urls to the LongURL
 app.get("/u/:id", (req, res) => {
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
-  let longURL = urlDatabase[req.params.id].longURL;
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
+  const longURL = urlDatabase[req.params.id].longURL;
   console.log(longURL);
 
   const templateVars = {
@@ -138,10 +153,6 @@ app.get("/u/:id", (req, res) => {
     id: req.params.id,
     longURL: longURL,
   };
-
-  console.log(templateVars.longURL);
-
-  console.log("If ", req.params.id === undefined);
 
   if (templateVars.longURL) {
     console.log("Hi");
@@ -151,8 +162,8 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get('*', (req, res) => {
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
 
   const templateVars = {
     user: users[userID]
@@ -163,6 +174,7 @@ app.get('*', (req, res) => {
 
 ////// POST //////
 app.post("/register", (req, res) => {
+
   const userID = generateRandomString();
   const userEmail = req.body.email;
   const userPwd = req.body.password;
@@ -170,6 +182,7 @@ app.post("/register", (req, res) => {
   const emailExists = getUserByEmail(userEmail, users);
 
   const templateVars = {
+    user: users[userID],
     errMessage: '',
   };
 
@@ -204,11 +217,11 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  let userEmail = req.body.email;
-  let userPwd = req.body.password;
-  let user = getUserByEmail(userEmail, users);
-  let userID = req.session.user_id;
-  // let userID = req.cookies["user_id"];
+  let userID;
+  const userEmail = req.body.email;
+  const userPwd = req.body.password;
+  const user = getUserByEmail(userEmail, users);
+  // const userID = req.cookies["user_id"];
 
   const templateVars = {
     user: users[userID],
@@ -225,6 +238,9 @@ app.post("/login", (req, res) => {
     res.status(403).render("pages/urls_login", templateVars);
   }
 
+  console.log(typeof userPwd);
+  console.log(typeof user.password);
+
   if (user) {
     if (!passwordCheck(userPwd, user)) {
       templateVars.errMessage = "Password Incorrect!!!!";
@@ -233,7 +249,7 @@ app.post("/login", (req, res) => {
 
     if (passwordCheck(userPwd, user)) {
       // res.cookie('user_id', user.id);
-      res.session.user_id = user.id;
+      req.session.user_id = user.id;
       res.redirect('/urls');
     }
   }
@@ -241,14 +257,15 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   // res.clearCookie('user_id', { path: '/' });
-  req.session = null
+  req.session.user_id = null;
+  req.session = null;
   res.redirect('/login');
 });
 
 app.post("/urls", (req, res) => {
-  //If the user is not logged in, POST /urls should respond with an HTML message that tells the user why they cannot shorten URLs. Double check that in this case the URL is not added to the database.
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
+  console.log(userID);
 
   if (userID) {
     //generate new short URL id
@@ -268,11 +285,11 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/update", (req, res) => {
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
-  let urlID = req.params.id;
-  let userUrls = urlsForUser(userID);
-  let isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
+  const urlID = req.params.id;
+  const userUrls = urlsForUser(userID, urlDatabase);
+  const isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
 
   const templateVars = {
     errMessage: '',
@@ -295,14 +312,14 @@ app.post("/urls/:id/update", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  // let userID = req.cookies["user_id"];
-  let userID = req.session.user_id;
-  let urlID = req.params.id;
-  let userUrls = urlsForUser(userID);
-  let isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
+  const urlID = req.params.id;
+  const userUrls = urlsForUser(userID, urlDatabase);
+  const isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
 
   const templateVars = {
-    urls: urlsForUser(userID),
+    urls: urlsForUser(userID, urlDatabase),
     user: users[userID],
     errMessage: ''
   };
