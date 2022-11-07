@@ -304,12 +304,12 @@ app.post("/urls/:id/delete", (req, res) => {
     res.status(403).render('pages/urls_index', templateVars);
   }
 
-  if (isUsersUrl.length === 0) {
+  if (!isUsersUrl) {
     templateVars.errMessage = `You do not have access to delete this url!`;
     res.status(403).render('pages/urls_index', templateVars);
   }
 
-  if (isUsersUrl.length > 0) {
+  if (isUsersUrl) {
     delete urlDatabase[req.params.id];
     res.redirect('/urls');
   }
