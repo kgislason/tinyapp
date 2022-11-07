@@ -252,7 +252,7 @@ app.post("/urls", (req, res) => {
       userID: userID,
     };
 
-    res.redirect('/urls');
+    res.redirect('/urls/' + random);
   } else {
     res.status(403).send("You must login to add new urls");
   }
