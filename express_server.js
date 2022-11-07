@@ -148,7 +148,7 @@ app.get("/u/:id", (req, res) => {
     res.status(404).render("pages/urls_404", templateVars);
   }
 
-  if (userID && urlIdExists(urlID, urlDatabase)) {
+  if (urlIdExists(urlID, urlDatabase)) {
     const longURL = urlDatabase[urlID].longURL;
     res.redirect(longURL);
   }
