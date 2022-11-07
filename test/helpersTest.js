@@ -1,5 +1,5 @@
 const { assert } = require('chai');
-const { getUserByEmail, generateRandomString, urlsForUser, isUrlIdForCurrentUser  } = require('../helpers.js');
+const { getUserByEmail, generateRandomString, urlsForUser, isUrlIdForCurrentUser, urlIdExists  } = require('../helpers.js');
 
 const testUsers = {
   "userRandomID": {
@@ -22,13 +22,6 @@ const testURLs = {
   "9sm5xK": {
     longURL: "http://www.google.com",
     userID: "userRandomID2",
-  },
-}
-
-const testURL = {
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "userRandomID",
   },
 };
 
@@ -54,7 +47,7 @@ describe('generateRandomString', function() {
     const actual = generateRandomString(8);
 
     assert.equal(actual.length, expected.length);
-  })
+  });
 });
 
 describe('urlsForUser', function() {
@@ -93,6 +86,26 @@ describe('isUrlIdForCurrentUser ', function() {
         userID: "userRandomID2",
       },
     });
+
+    assert.equal(expected, actual);
+  });
+
+
+  // urlIdExists
+});
+
+
+describe('urlIdExists', function() {
+  it('should return true if a given urlID exists in the database', function() {
+    const expected = true;
+    const actual = urlIdExists("b2xVn2", testURLs);
+
+    assert.equal(expected, actual);
+  });
+
+  it('should return false if a given urlID does not exist in the database', function() {
+    const expected = false;
+    const actual = urlIdExists("123456", testURLs);
 
     assert.equal(expected, actual);
   });
