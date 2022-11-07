@@ -108,7 +108,7 @@ app.get("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   const urlID = req.params.id;
   const userUrls = urlsForUser(userID, urlDatabase);
-  const isUsersUrl = isUrlIdForCurrentUser (urlID, userUrls);
+  const isUsersUrl = isUrlIdForCurrentUser(urlID, userUrls);
 
   const templateVars = {
     id: urlID,
@@ -263,7 +263,7 @@ app.post("/urls/:id/update", (req, res) => {
   const userID = req.session.user_id;
   const urlID = req.params.id;
   const userUrls = urlsForUser(userID, urlDatabase);
-  const isUsersUrl = isUrlIdForCurrentUser (urlID, userUrls);
+  const isUsersUrl = isUrlIdForCurrentUser(urlID, userUrls);
 
   const templateVars = {
     errMessage: '',
@@ -291,7 +291,7 @@ app.post("/urls/:id/delete", (req, res) => {
   const userID = req.session.user_id;
   const urlID = req.params.id;
   const userUrls = urlsForUser(userID, urlDatabase);
-  const isUsersUrl = isUrlIdForCurrentUser (urlID, userUrls);
+  const isUsersUrl = isUrlIdForCurrentUser(urlID, userUrls);
 
   const templateVars = {
     urls: urlsForUser(userID, urlDatabase),
