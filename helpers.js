@@ -41,8 +41,13 @@ const urlsForUser = (id, urlDatabase) => {
 };
 
 // Returns true or false if a given URL id is associated with the current user
-const getUrlIdForCurrentUser = (id, userObj) => {
-  return Object.keys(userObj).filter((item) => item === id);
+const isUrlIdForCurrentUser  = (urlID, userObj) => {
+  for (const key of Object.keys(userObj)) {
+    if (key === urlID) {
+      return true;
+    }
+  }
+  return false;
 };
 
 // Checks the password entered at login against the password in user database
@@ -66,6 +71,6 @@ module.exports = {
   getUserByEmail,
   passwordCheck,
   urlsForUser,
-  getUrlIdForCurrentUser,
+  isUrlIdForCurrentUser ,
   urlIdExists,
 };

@@ -10,7 +10,7 @@ const {
   getUserByEmail,
   passwordCheck,
   urlsForUser,
-  getUrlIdForCurrentUser,
+  isUrlIdForCurrentUser ,
   urlIdExists
 } = require("./helpers");
 
@@ -108,7 +108,7 @@ app.get("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   const urlID = req.params.id;
   const userUrls = urlsForUser(userID, urlDatabase);
-  const isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
+  const isUsersUrl = isUrlIdForCurrentUser (urlID, userUrls);
 
   const templateVars = {
     id: urlID,
@@ -121,11 +121,11 @@ app.get("/urls/:id", (req, res) => {
     templateVars.errMessage = `You need to <a href="/login">login</a> to access this page`;
   }
 
-  if (userID && isUsersUrl.length === 0) {
+  if (userID && !isUsersUrl) {
     templateVars.errMessage = `You do not have access to this page. Go <a href="/">back home</a>`;
   }
 
-  if (isUsersUrl.length > 0) {
+  if (userID && isUsersUrl) {
     templateVars.hasAccess = true;
     templateVars.longURL = urlDatabase[urlID].longURL;
   }
@@ -263,7 +263,7 @@ app.post("/urls/:id/update", (req, res) => {
   const userID = req.session.user_id;
   const urlID = req.params.id;
   const userUrls = urlsForUser(userID, urlDatabase);
-  const isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
+  const isUsersUrl = isUrlIdForCurrentUser (urlID, userUrls);
 
   const templateVars = {
     errMessage: '',
@@ -274,12 +274,12 @@ app.post("/urls/:id/update", (req, res) => {
     res.status(403).render('pages/urls_index', templateVars);
   }
 
-  if (isUsersUrl.length === 0) {
+  if (!isUsersUrl) {
     templateVars.errMessage = `You do not have access to perform this action!`;
     res.status(403).render('pages/urls_index', templateVars);
   }
 
-  if (isUsersUrl.length > 0) {
+  if (isUsersUrl) {
     urlDatabase[req.params.id].longURL = req.body.longURL;
     res.redirect('/urls');
   }
@@ -291,7 +291,7 @@ app.post("/urls/:id/delete", (req, res) => {
   const userID = req.session.user_id;
   const urlID = req.params.id;
   const userUrls = urlsForUser(userID, urlDatabase);
-  const isUsersUrl = getUrlIdForCurrentUser(urlID, userUrls);
+  const isUsersUrl = isUrlIdForCurrentUser (urlID, userUrls);
 
   const templateVars = {
     urls: urlsForUser(userID, urlDatabase),
